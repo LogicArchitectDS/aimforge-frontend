@@ -1,6 +1,6 @@
 import { TrainingRoutine } from "../game/routine";
 
-const ROUTINES_STORAGE_KEY = "aimforge_routines";
+const ROUTINES_STORAGE_KEY = "aimsync_routines";
 
 function safeParse(value: string | null): TrainingRoutine[] {
     if (!value) return [];

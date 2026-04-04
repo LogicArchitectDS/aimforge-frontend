@@ -111,7 +111,7 @@ export default function GamePage() {
 
             <div className="relative z-10 w-full max-w-7xl space-y-12">
                 <div className="text-center space-y-2">
-                    <p className="text-[#3366FF] text-sm font-bold tracking-[0.4em] uppercase">AimForge Terminal</p>
+                    <p className="text-[#3366FF] text-sm font-bold tracking-[0.4em] uppercase">AimSync Terminal</p>
                     <h1 className="text-5xl md:text-6xl font-black tracking-widest uppercase text-white drop-shadow-lg">Select Protocol</h1>
                 </div>
 

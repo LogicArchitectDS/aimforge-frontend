@@ -309,7 +309,7 @@ export default function TrackingMode({ overrideSettings, onFinish }: TrackingMod
                     <div className="relative z-10 w-full h-full flex items-center justify-center p-4 bg-black/50">
                         <div className="w-full max-w-2xl space-y-8 text-center p-12 border border-white/10 bg-[#121212]/80 rounded-3xl backdrop-blur-xl shadow-2xl">
                             <div className="space-y-2">
-                                <p className="text-[#3366FF] text-sm font-bold tracking-[0.3em] uppercase">AimForge Training</p>
+                                <p className="text-[#3366FF] text-sm font-bold tracking-[0.3em] uppercase">AimSync Training</p>
                                 <h2 className="text-5xl font-black tracking-widest uppercase">Continuous Tracking</h2>
                             </div>
                             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 justify-center pt-4">

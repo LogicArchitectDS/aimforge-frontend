@@ -1,4 +1,4 @@
-export type AimForgeSettings = {
+export type AimSyncSettings = {
     sensitivity: number;
     dpi: number;
     scopedSensitivityMultiplier: number;
@@ -11,9 +11,9 @@ export type AimForgeSettings = {
     crosshairEnabled: boolean;
 };
 
-const SETTINGS_STORAGE_KEY = "aimforge_user_settings";
+const SETTINGS_STORAGE_KEY = "aimsync_user_settings";
 
-export const getDefaultSettings = (): AimForgeSettings => ({
+export const getDefaultSettings = (): AimSyncSettings => ({
     sensitivity: 0.35,
     dpi: 800,
     scopedSensitivityMultiplier: 1,
@@ -26,14 +26,14 @@ export const getDefaultSettings = (): AimForgeSettings => ({
     crosshairEnabled: true,
 });
 
-export const getStoredSettings = (): AimForgeSettings => {
+export const getStoredSettings = (): AimSyncSettings => {
     if (typeof window === "undefined") return getDefaultSettings(); // SSR Safety Check
 
     try {
         const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
         if (!raw) return getDefaultSettings();
 
-        const parsed = JSON.parse(raw) as Partial<AimForgeSettings>;
+        const parsed = JSON.parse(raw) as Partial<AimSyncSettings>;
         return { ...getDefaultSettings(), ...parsed };
     } catch (error) {
         console.error("Failed to read user settings:", error);
@@ -41,7 +41,7 @@ export const getStoredSettings = (): AimForgeSettings => {
     }
 };
 
-export const saveStoredSettings = (settings: AimForgeSettings): void => {
+export const saveStoredSettings = (settings: AimSyncSettings): void => {
     if (typeof window === "undefined") return; // SSR Safety Check
     try {
         localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
@@ -50,7 +50,7 @@ export const saveStoredSettings = (settings: AimForgeSettings): void => {
     }
 };
 
-export const resetStoredSettings = (): AimForgeSettings => {
+export const resetStoredSettings = (): AimSyncSettings => {
     const defaults = getDefaultSettings();
     saveStoredSettings(defaults);
     return defaults;

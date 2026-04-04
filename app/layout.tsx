@@ -10,7 +10,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "AimForge | Real-Time FPS Aim Training",
+  title: "AimSync | Real-Time FPS Aim Training",
   description: "A browser-based aim training system for structured mechanical improvement.",
 };
 
