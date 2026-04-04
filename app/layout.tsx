@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -22,10 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${spaceGrotesk.variable} font-sans bg-background text-text-primary min-h-screen flex flex-col antialiased selection:bg-red selection:text-white`}>
-        <Navbar />
-        <main className="flex-1 flex flex-col relative z-10">
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   );
