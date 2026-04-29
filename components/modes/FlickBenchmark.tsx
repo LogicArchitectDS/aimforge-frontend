@@ -15,6 +15,7 @@ import { buildGameResult } from "@/lib/utils/resultBuilder";
 import { updateStatsWithResult } from "@/lib/utils/statsStorage";
 import SessionHUD from "@/components/SessionHUD";
 import ResultsScreen from "@/components/ResultsScreen";
+import { spawnHitmarker } from "@/lib/utils/hitmarker";
 
 // ─────────────────────────────────────────────────────────────
 //  BENCHMARK CONSTANTS — Duration & accuracy threshold never change.
@@ -211,6 +212,7 @@ export default function FlickBenchmark({ onFinish }: FlickBenchmarkProps) {
             setHits(p => p + 1);
             setScore(p => p + benchmarkConfig.scorePerHit);
             setReactionTimes(p => [...p, reaction]);
+            spawnHitmarker(e.clientX, e.clientY);
             spawnTarget();
         } else {
             setMisses(p => p + 1);

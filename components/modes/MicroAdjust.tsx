@@ -16,6 +16,7 @@ import { updateStatsWithResult } from "@/lib/utils/statsStorage";
 
 import SessionHUD from "@/components/SessionHUD";
 import ResultsScreen from "@/components/ResultsScreen";
+import { spawnHitmarker } from "@/lib/utils/hitmarker";
 import { useAuth } from "@/lib/contexts/AuthContext";
 
 interface OverrideSettings { difficulty: Difficulty; duration: number; }
@@ -254,6 +255,7 @@ export default function MicroAdjust({ overrideSettings, onFinish }: MicroAdjustP
             setHits((prev) => prev + 1);
             setReactionTimes((prev) => [...prev, reaction]);
             setScore((prev) => prev + config.scorePerHit);
+            spawnHitmarker(event.clientX, event.clientY);
             spawnTarget();
             return;
         }

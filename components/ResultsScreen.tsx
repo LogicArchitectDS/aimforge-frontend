@@ -3,14 +3,108 @@
 import { useEffect, useRef, useState } from "react";
 import { StorageEngine } from "@/lib/utils/storage";
 import type { GameResult } from "@/lib/game/types";
+import { useGameStore } from "@/store/gameStore";
+import { useRouter } from "next/navigation";
 
 interface ResultsScreenProps {
-    result: GameResult;
-    onRestart: () => void;
-    onBackToMenu: () => void;
+    result?: GameResult;
+    onRestart?: () => void;
+    onBackToMenu?: () => void;
 }
 
-export default function ResultsScreen({ result, onRestart, onBackToMenu }: ResultsScreenProps) {
+export default function ResultsScreen(props: ResultsScreenProps) {
+    if (props.result && props.onRestart && props.onBackToMenu) {
+        return <LegacyResultsScreen result={props.result} onRestart={props.onRestart} onBackToMenu={props.onBackToMenu} />;
+    }
+    return <ZustandResultsScreen />;
+}
+
+function ZustandResultsScreen() {
+    // Atomic selectors for performance
+    const status = useGameStore(state => state.status);
+    const score = useGameStore(state => state.score);
+    const highScore = useGameStore(state => state.highScore);
+    const shotsFired = useGameStore(state => state.shotsFired);
+    const totalDuration = useGameStore(state => state.totalDuration);
+    const reset = useGameStore(state => state.reset);
+    const startGame = useGameStore(state => state.startGame);
+    const router = useRouter();
+
+    if (status !== 'finished') return null;
+
+    const accuracy = shotsFired > 0 ? Math.round((score / shotsFired) * 100) : 0;
+    const avgKps = (score / totalDuration).toFixed(2);
+    const isNewBest = score >= highScore && score > 0;
+
+    const handleReturnToHub = async () => {
+        reset();
+        if (document.fullscreenElement) {
+            await document.exitFullscreen().catch(() => {});
+        }
+        router.push('/dashboard');
+    };
+
+    const handlePlayAgain = () => {
+        startGame(totalDuration);
+    };
+
+    return (
+        <div className="absolute inset-0 z-[200] bg-black/80 backdrop-blur-xl pointer-events-auto flex items-center justify-center p-6 transition-all duration-500 ease-out animate-in fade-in zoom-in-95">
+            <div className="w-full max-w-3xl bg-[#121212] border border-white/10 rounded-3xl p-10 shadow-2xl flex flex-col items-center text-white relative overflow-hidden">
+                
+                {/* Decorative Background */}
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <svg className="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.2L18.8 19H5.2L12 6.2z" /></svg>
+                </div>
+
+                <p className="text-[#3366FF] text-sm font-bold tracking-[0.4em] uppercase mb-2">Protocol Complete</p>
+                <h1 className="text-5xl font-black tracking-widest uppercase mb-2 text-white drop-shadow-md">After-Action Report</h1>
+                
+                <div className="mb-10 text-center h-6">
+                    {isNewBest ? (
+                        <span className="text-yellow-400 text-sm font-black tracking-[0.3em] uppercase animate-pulse">⭐ New Personal Best! ⭐</span>
+                    ) : (
+                        <span className="text-gray-500 text-sm font-bold tracking-[0.2em] uppercase">Personal Best: {highScore}</span>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-12 relative z-10">
+                    <div className="flex flex-col items-center p-6 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
+                        <span className="text-gray-400 text-xs font-bold tracking-wider mb-2 uppercase">Final Score</span>
+                        <span className="text-5xl font-black text-white tabular-nums">{score}</span>
+                    </div>
+
+                    <div className="flex flex-col items-center p-6 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
+                        <span className="text-gray-400 text-xs font-bold tracking-wider mb-2 uppercase">Accuracy</span>
+                        <span className="text-5xl font-black text-[#1DB954] tabular-nums">{accuracy}%</span>
+                    </div>
+
+                    <div className="flex flex-col items-center p-6 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
+                        <span className="text-gray-400 text-xs font-bold tracking-wider mb-2 uppercase">Avg KPS</span>
+                        <span className="text-5xl font-black text-cyan-400 tabular-nums">{avgKps}</span>
+                    </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center relative z-10">
+                    <button
+                        onClick={handlePlayAgain}
+                        className="px-10 py-5 bg-[#EAEAEA] text-[#121212] font-black tracking-[0.2em] uppercase rounded-xl hover:bg-[#3366FF] hover:text-white transition-all duration-300 w-full sm:w-auto"
+                    >
+                        Run Again
+                    </button>
+                    <button
+                        onClick={handleReturnToHub}
+                        className="px-10 py-5 bg-transparent border border-white/20 text-white font-bold tracking-[0.2em] uppercase rounded-xl hover:bg-white/10 hover:border-white/50 transition-all duration-300 w-full sm:w-auto"
+                    >
+                        Abort to Hub
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function LegacyResultsScreen({ result, onRestart, onBackToMenu }: { result: GameResult, onRestart: () => void, onBackToMenu: () => void }) {
     // The "Latch": Prevents duplicate saves during React Strict Mode double-renders
     const hasSaved = useRef(false);
     const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "error">("saving");

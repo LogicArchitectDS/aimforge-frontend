@@ -9,6 +9,7 @@ import { buildGameResult } from "@/lib/utils/resultBuilder";
 import { updateStatsWithResult } from "@/lib/utils/statsStorage";
 import SessionHUD from "@/components/SessionHUD";
 import ResultsScreen from "@/components/ResultsScreen";
+import { spawnHitmarker } from "@/lib/utils/hitmarker";
 
 interface OverrideSettings { difficulty: Difficulty; duration: number; }
 interface BurstReactionProps { overrideSettings?: OverrideSettings; onFinish?: (result: GameResult) => void; }
@@ -177,7 +178,7 @@ export default function BurstReaction({ overrideSettings, onFinish }: BurstReact
             const reaction = performance.now() - hitTarget.spawnedAt;
             const nextCombo = combo + 1;
             targetsRef.current.splice(hitIndex, 1);
-            setHits((p) => p + 1); setCombo(nextCombo); setReactionTimes((p) => [...p, reaction]); setScore((p) => p + config.scorePerHit + nextCombo * 5);
+            setHits((p) => p + 1); setCombo(nextCombo); setReactionTimes((p) => [...p, reaction]); setScore((p) => p + config.scorePerHit + nextCombo * 5); spawnHitmarker(event.clientX, event.clientY);
             if (targetsRef.current.length === 0) { if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current); window.setTimeout(() => spawnCluster(), 250); }
             return;
         }

@@ -2,6 +2,9 @@
 
 import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+
+
 // --- ACTIVE PROTOCOLS ---
 import StaticFlick from "@/components/modes/StaticFlick";
 import SensitivityFinder from "@/components/modes/SensitivityFinder";
@@ -29,7 +32,7 @@ export type Mode =
     | "flick-benchmark"
     | "reaction-test";
 
-const ModeRegistry: Record<Exclude<Mode, "menu">, React.ElementType> = {
+const ModeRegistry: Record<Exclude<Mode, "menu">, React.ElementType<any>> = {
     "static-flick": StaticFlick,
     "tracking-mode": TrackingMode,
     "target-switch": TargetSwitch,
@@ -42,7 +45,10 @@ const ModeRegistry: Record<Exclude<Mode, "menu">, React.ElementType> = {
     "reaction-test": ReactionTest,
 };
 
+
+
 export const protocolCards: { id: Exclude<Mode, "menu">; category: string; title: string; desc: string; color: string }[] = [
+    // ... (keep your exact protocolCards array here)
     { id: "static-flick", category: "Combat", title: "Static Flick", desc: "Develop raw mechanical memory and stopping power.", color: "#3366FF" },
     { id: "tracking-mode", category: "Dynamic", title: "Continuous Tracking", desc: "Engage erratic targets to develop crosshair prediction.", color: "#06b6d4" },
     { id: "target-switch", category: "Cognitive", title: "Target Switch", desc: "Rapidly identify and eliminate the correct target hidden among decoys.", color: "#1DB954" },
@@ -77,6 +83,8 @@ function GameEngine() {
 
     const ActiveComponent = ModeRegistry[currentMode];
 
+
+
     const handleModeFinish = () => {
         if (document.fullscreenElement) {
             document.exitFullscreen().catch((err) => {
@@ -87,13 +95,19 @@ function GameEngine() {
     };
 
     return (
-        <div className="relative w-full h-screen bg-[#121212]">
+        <div className="relative w-full h-screen bg-[#121212] overflow-hidden">
+
+
+
+            {/* Existing Abort Button */}
             <button
                 onClick={handleModeFinish}
-                className="absolute top-6 right-6 z-[100] px-4 py-2 bg-black/50 border border-white/10 rounded text-xs font-bold tracking-widest text-gray-400 hover:text-white hover:border-white/30 transition-all backdrop-blur-md"
+                className="absolute bottom-6 right-6 z-[100] px-4 py-2 bg-black/50 border border-white/10 rounded text-xs font-bold tracking-widest text-gray-400 hover:text-white hover:border-white/30 transition-all backdrop-blur-md"
             >
                 ABORT TO HUB
             </button>
+
+            {/* The Active Mode Component */}
             <ActiveComponent onFinish={handleModeFinish} />
         </div>
     );

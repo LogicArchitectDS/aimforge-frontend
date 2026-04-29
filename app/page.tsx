@@ -218,7 +218,7 @@ export default function Home() {
 
         {/* ── HERO CONTENT ── */}
         <div className="relative z-10 flex-1 flex flex-col justify-end px-8 md:px-16 lg:px-24 pb-40 pt-8 max-w-7xl mx-auto w-full">
-          
+
           <div className="flex flex-col items-start text-left max-w-3xl">
             <h1 className="text-6xl md:text-7xl lg:text-[5.5rem] font-black uppercase tracking-tighter leading-[0.9] text-white mb-6">
               THE ONLINE<br />
@@ -289,7 +289,7 @@ export default function Home() {
             <div className="w-32 h-32 bg-red/20 border-2 border-red rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.4)] backdrop-blur-sm z-10">
               <span className="text-5xl font-black text-white">#1</span>
             </div>
-            
+
             {/* Decorative nodes */}
             <div className="absolute top-[15%] left-[20%] w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)]" />
             <div className="absolute bottom-[20%] right-[15%] w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
@@ -368,10 +368,10 @@ export default function Home() {
       {/* ═══ GAME SYNC / THE TRAINER ═══ */}
       <section className="relative z-10 py-32 overflow-hidden bg-gradient-to-b from-background to-[#1a0505]">
         <div className="max-w-7xl mx-auto px-8 md:px-16 w-full flex flex-col items-center text-center space-y-12">
-          
+
           <div className="space-y-6 max-w-3xl">
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-white leading-tight">
-              GAME SYNC: <br/><span className="text-red">IT&apos;S AN AIM CHANGER</span>
+              GAME SYNC: <br /><span className="text-red">IT&apos;S AN AIM CHANGER</span>
             </h2>
             <p className="text-slate-300 text-lg leading-relaxed">
               Don&apos;t guess your sensitivity. AimSync provides 1:1 physics matching, FOV scaling, and sensitivity syncing for the world&apos;s most competitive tactical shooters.
@@ -411,39 +411,39 @@ export default function Home() {
       <section id="plus" className="relative z-10 px-8 md:px-16 py-32 max-w-7xl mx-auto w-full flex flex-col md:flex-row-reverse items-center gap-16">
         <div className="flex-1 space-y-8">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-white leading-tight">
-            KNOW THE TRUTH <br/>ABOUT YOUR AIM
+            KNOW THE TRUTH <br />ABOUT YOUR AIM
           </h2>
           <p className="text-slate-400 text-lg leading-relaxed">
             Stop guessing what went wrong. Dive into advanced data analytics tracking your reaction time, precision drop-off, overflick angles, and micro-correction speed.
           </p>
           <ul className="space-y-4 text-white font-bold tracking-wider">
-             <li className="flex items-center gap-3">
-               <span className="text-red text-xl">✓</span> Reaction Time Analysis
-             </li>
-             <li className="flex items-center gap-3">
-               <span className="text-red text-xl">✓</span> Error Angle Tracking
-             </li>
-             <li className="flex items-center gap-3">
-               <span className="text-red text-xl">✓</span> Smoothness Profiling
-             </li>
+            <li className="flex items-center gap-3">
+              <span className="text-red text-xl">✓</span> Reaction Time Analysis
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="text-red text-xl">✓</span> Error Angle Tracking
+            </li>
+            <li className="flex items-center gap-3">
+              <span className="text-red text-xl">✓</span> Smoothness Profiling
+            </li>
           </ul>
         </div>
         <div className="flex-1 relative w-full aspect-video bg-surface/80 border border-white/10 rounded-xl overflow-hidden shadow-2xl p-6 flex flex-col">
-            <div className="w-full flex items-end gap-2 h-48 border-b border-white/10 pb-4">
-                {[40, 65, 45, 80, 55, 90, 75, 100].map((h, i) => (
-                    <div key={i} className="flex-1 bg-gradient-to-t from-red/20 to-red rounded-t-sm" style={{ height: `${h}%` }}></div>
-                ))}
+          <div className="w-full flex items-end gap-2 h-48 border-b border-white/10 pb-4">
+            {[40, 65, 45, 80, 55, 90, 75, 100].map((h, i) => (
+              <div key={i} className="flex-1 bg-gradient-to-t from-red/20 to-red rounded-t-sm" style={{ height: `${h}%` }}></div>
+            ))}
+          </div>
+          <div className="flex-1 grid grid-cols-2 gap-4 pt-6">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Avg Reaction</p>
+              <p className="text-2xl font-black text-white font-mono">184<span className="text-sm text-red">ms</span></p>
             </div>
-            <div className="flex-1 grid grid-cols-2 gap-4 pt-6">
-                <div>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Avg Reaction</p>
-                    <p className="text-2xl font-black text-white font-mono">184<span className="text-sm text-red">ms</span></p>
-                </div>
-                <div>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Accuracy</p>
-                    <p className="text-2xl font-black text-white font-mono">92.4<span className="text-sm text-red">%</span></p>
-                </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Accuracy</p>
+              <p className="text-2xl font-black text-white font-mono">92.4<span className="text-sm text-red">%</span></p>
             </div>
+          </div>
         </div>
       </section>
 

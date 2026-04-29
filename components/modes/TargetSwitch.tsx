@@ -9,6 +9,7 @@ import { buildGameResult } from "@/lib/utils/resultBuilder";
 import { updateStatsWithResult } from "@/lib/utils/statsStorage";
 import SessionHUD from "@/components/SessionHUD";
 import ResultsScreen from "@/components/ResultsScreen";
+import { spawnHitmarker } from "@/lib/utils/hitmarker";
 
 interface OverrideSettings { difficulty: Difficulty; duration: number; }
 interface TargetSwitchProps { overrideSettings?: OverrideSettings; onFinish?: (result: GameResult) => void; }
@@ -141,7 +142,7 @@ export default function TargetSwitch({ overrideSettings, onFinish }: TargetSwitc
         let clicked = null;
         for (const t of targets) { if (isPointInsideTarget(x, y, t.x, t.y, t.radius)) { clicked = t; break; } }
         if (!clicked) { setMisses((p) => p + 1); setScore((p) => Math.max(0, p - config.missPenalty)); return; }
-        if (clicked.isCorrect) { const reaction = performance.now() - clicked.spawnedAt; setHits((p) => p + 1); setScore((p) => p + config.scorePerHit); setReactionTimes((p) => [...p, reaction]); spawnWave(); return; }
+        if (clicked.isCorrect) { const reaction = performance.now() - clicked.spawnedAt; setHits((p) => p + 1); setScore((p) => p + config.scorePerHit); setReactionTimes((p) => [...p, reaction]); spawnHitmarker(event.clientX, event.clientY); spawnWave(); return; }
         setMisses((p) => p + 1); setScore((p) => Math.max(0, p - config.missPenalty));
     };
 
