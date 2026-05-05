@@ -103,7 +103,7 @@ function DashboardHeader() {
             </div>
             
             <div className="flex items-center gap-6">
-                <Link href={isTrial ? "#" : "/auth/setup-username"} className="flex items-center gap-3 group">
+                <Link href={isTrial ? "#" : "/dashboard/profile"} className="flex items-center gap-3 group">
                     <div className="flex flex-col items-end hidden md:flex">
                         <span className="text-xs font-black text-white tracking-widest leading-none mb-1 group-hover:text-red transition-colors">
                             {isTrial ? "Trial Agent" : (user?.username || "Agent_01")}

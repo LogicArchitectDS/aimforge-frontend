@@ -17,7 +17,11 @@ import ReactionTest from "@/components/modes/ReactionTest";
 import FlickBenchmark from "@/components/modes/FlickBenchmark";
 import ConsistencyCheck from "@/components/modes/ConsistencyCheck";
 import CustomRoutine from "@/components/modes/CustomRoutine";
+import Echolocation from "@/components/modes/Echolocation";
+import CognitiveOverdrive from "@/components/modes/CognitiveOverdrive";
+import RecoilReactiveEvasion from "@/components/modes/RecoilReactiveEvasion";
 import { DEFAULT_ROUTINES } from "@/lib/utils/routineEngine";
+import { Difficulty } from "@/lib/utils/drillConfig";
 
 export type Mode =
     | "menu"
@@ -30,7 +34,10 @@ export type Mode =
     | "consistency-check"
     | "custom-routine"
     | "flick-benchmark"
-    | "reaction-test";
+    | "reaction-test"
+    | "echolocation"
+    | "cognitive-overdrive"
+    | "recoil-evasion";
 
 const ModeRegistry: Record<Exclude<Mode, "menu">, React.ElementType<any>> = {
     "static-flick": StaticFlick,
@@ -43,6 +50,9 @@ const ModeRegistry: Record<Exclude<Mode, "menu">, React.ElementType<any>> = {
     "custom-routine": CustomRoutine,
     "flick-benchmark": FlickBenchmark,
     "reaction-test": ReactionTest,
+    "echolocation": Echolocation,
+    "cognitive-overdrive": CognitiveOverdrive,
+    "recoil-evasion": RecoilReactiveEvasion,
 };
 
 
@@ -59,13 +69,37 @@ export const protocolCards: { id: Exclude<Mode, "menu">; category: string; title
     { id: "consistency-check", category: "Evaluation", title: "Consistency Check", desc: "Test variance in performance over prolonged engagements.", color: "#8b5cf6" },
     { id: "custom-routine", category: "Playlist", title: "Custom Routine", desc: "Execute user-defined training playlists.", color: "#64748b" },
     { id: "sensitivity-finder", category: "Diagnostic", title: "Sens Matrix", desc: "Mathematical analysis to calculate optimal mouse sensitivity.", color: "#8A2BE2" },
+    { id: "echolocation", category: "Perception", title: "Echolocation", desc: "Rely on spatial audio to snap to targets behind you.", color: "#06b6d4" },
+    { id: "cognitive-overdrive", category: "Cognitive", title: "Cognitive Overdrive", desc: "Target discrimination: shoot the hostile targets and avoid distractors.", color: "#3b82f6" },
+    { id: "recoil-evasion", category: "Dynamic", title: "Recoil Evasion", desc: "Counteract weapon recoil while tracking a target that evades your spray pattern.", color: "#f87171" },
 ];
 
 function GameEngine() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const modeParam = searchParams.get("mode") as Exclude<Mode, "menu"> | null;
+    const diffParam = searchParams.get("diff");
+    const timeParam = searchParams.get("time");
+
     const currentMode = modeParam && ModeRegistry[modeParam] ? modeParam : null;
+
+    const overrideSettings = React.useMemo(() => {
+        if (!diffParam && !timeParam) return undefined;
+        const diffMap: Record<string, Difficulty> = {
+            'eco': 'easy',
+            'bonus': 'medium',
+            'force-buy': 'hard',
+            'full-buy': 'extreme',
+            'easy': 'easy',
+            'medium': 'medium',
+            'hard': 'hard',
+            'extreme': 'extreme'
+        };
+        return {
+            difficulty: diffMap[diffParam?.toLowerCase() || ''] || 'medium',
+            duration: Number(timeParam) > 0 ? Number(timeParam) : 30
+        };
+    }, [diffParam, timeParam]);
 
     if (!currentMode) {
         return (
@@ -108,7 +142,10 @@ function GameEngine() {
             </button>
 
             {/* The Active Mode Component */}
-            {React.createElement(ActiveComponent as any, { onFinish: handleModeFinish })}
+            {React.createElement(ActiveComponent as any, { 
+                onFinish: handleModeFinish,
+                overrideSettings 
+            })}
         </div>
     );
 }

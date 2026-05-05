@@ -20,7 +20,7 @@ export const useRecoil = (activeWeapon: WeaponStats | null) => {
     // This is the core ballistics math
     const getShotTrajectory = useCallback(() => {
         // If no weapon is equipped, shoot a perfect laser pointer (0 spread)
-        if (!activeWeapon) return { offsetX: 0, offsetY: 0 };
+        if (!activeWeapon) return { offsetX: 0, offsetY: 0, kickX: 0, kickY: 0 };
 
         const now = performance.now();
 
@@ -42,8 +42,14 @@ export const useRecoil = (activeWeapon: WeaponStats | null) => {
         const offsetX = Math.cos(randomAngle) * randomRadius;
         const offsetY = Math.sin(randomAngle) * randomRadius;
 
-        return { offsetX, offsetY };
+        // 5. Recoil Kick (Deterministic pattern)
+        // Vertical climb: starts slow, then caps
+        const kickY = isFiring.current ? Math.min(timeFiringSeconds * 0.15, 0.3) : 0;
+        // Lateral wandering: sine wave that gets wider over time
+        const kickX = isFiring.current ? Math.sin(timeFiringSeconds * 10) * Math.min(timeFiringSeconds * 0.04, 0.08) : 0;
+
+        return { offsetX, offsetY, kickX, kickY };
     }, [activeWeapon]);
 
-    return { startFiring, stopFiring, getShotTrajectory };
+    return { startFiring, stopFiring, getShotTrajectory, isFiring: isFiring.current };
 };

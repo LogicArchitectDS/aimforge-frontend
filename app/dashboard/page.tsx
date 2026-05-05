@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { StorageEngine } from "@/lib/utils/storage";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import type { UserStats } from "@/lib/game/types";
 import dynamic from 'next/dynamic';
 
-// 1. THE FIX: Dynamically import the chart and completely disable SSR
 const RadarProfiler = dynamic(() => import('@/components/RadarProfiler'), {
     ssr: false,
     loading: () => <div className="w-full max-w-md h-[400px] animate-pulse bg-[#121212]/80 backdrop-blur-md rounded-3xl border border-white/5" />
@@ -32,7 +31,6 @@ export default function DashboardPage() {
     const { user, isTrial, logout } = useAuth();
     const router = useRouter();
 
-    // TEMPORARY: Mock data for the 6-Factor Radar Chart
     const mockDbStats = {
         flickingXp: 8100,
         trackingXp: 2500,
@@ -50,6 +48,89 @@ export default function DashboardPage() {
         return () => clearTimeout(timer);
     }, []);
 
+    const formatTime = (seconds: number) => {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        if (hrs > 0) return `${hrs}h ${mins}m`;
+        return `${mins}m ${seconds % 60}s`;
+    };
+
+    // --- FULLY DYNAMIC TASK GENERATOR (DAILIES) ---
+    const activeTasks = useMemo(() => {
+        const date = new Date();
+        const dailySeed = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+        const weekSeed = Math.floor(dailySeed / 7);
+
+        const difficulties = ['Eco', 'Bonus', 'Force Buy'];
+        const timeLimits = [30, 60, 90, 120];
+
+        const getModifier = (array: string[] | number[], offset: number) => array[(dailySeed + offset) % array.length];
+
+        const coreBases = [
+            { mode: 'static-flick', name: 'Baseline: Flick', focus: 'raw speed' },
+            { mode: 'continuous-track', name: 'Baseline: Track', focus: 'reactivity' },
+            { mode: 'micro-precision', name: 'Baseline: Micro', focus: 'fine-motor control' }
+        ];
+
+        const compulsoryTasks = coreBases.map((base, index) => {
+            const diff = getModifier(difficulties, index * 13) as string;
+            const time = getModifier(timeLimits, index * 7) as number;
+
+            return {
+                id: `task-core-${index}-${dailySeed}`,
+                mode: base.mode,
+                name: base.name,
+                desc: `Calibrate your ${base.focus} for ${time}s on a ${diff}.`,
+                difficulty: diff,
+                timeLimit: time,
+                xpReward: time * 10 + (difficulties.indexOf(diff) * 200)
+            };
+        });
+
+        const randomPoolBases = [
+            { mode: 'static-flick', name: 'Flick Endurance', focus: 'flick stamina' },
+            { mode: 'continuous-track', name: 'Tracking Overdrive', focus: 'smooth tracking' },
+            { mode: 'micro-precision', name: 'Needlepoint', focus: 'micro-adjustments' },
+            { mode: 'cognition-react', name: 'Cognitive Test', focus: 'decision making' },
+            { mode: 'echolocation', name: 'Audio Snap', focus: 'spatial audio reactions' },
+            { mode: 'cognitive-overdrive', name: 'Cognitive Overdrive', focus: 'target discrimination' }
+        ];
+
+        const r1Index = dailySeed % randomPoolBases.length;
+        let r2Index = (dailySeed + 3) % randomPoolBases.length;
+        if (r1Index === r2Index) r2Index = (r2Index + 1) % randomPoolBases.length;
+
+        const randomSelection = [randomPoolBases[r1Index], randomPoolBases[r2Index]];
+
+        const dailyRandomTasks = randomSelection.map((base, index) => {
+            const diff = getModifier(difficulties, index * 19 + 50) as string;
+            const time = getModifier(timeLimits, index * 11 + 50) as number;
+
+            return {
+                id: `task-rnd-${index}-${dailySeed}`,
+                mode: base.mode,
+                name: base.name,
+                desc: `Train your ${base.focus} for ${time}s on a ${diff}.`,
+                difficulty: diff,
+                timeLimit: time,
+                xpReward: time * 10 + (difficulties.indexOf(diff) * 200)
+            };
+        });
+
+        const weeklyPool = [
+            { mode: 'static-flick', name: 'Operation: Lightning', desc: 'Survive the Full Buy trial for 2 full minutes.', difficulty: 'Full Buy', timeLimit: 120, xpReward: 5000 },
+        ];
+        const w1Index = weekSeed % weeklyPool.length;
+
+        return {
+            daily: [...compulsoryTasks, ...dailyRandomTasks],
+            weekly: [
+                { id: `task-w1-${weekSeed}`, ...weeklyPool[w1Index] }
+            ]
+        };
+    }, []);
+
+
     if (isLoading) {
         return (
             <div className="flex-1 flex items-center justify-center min-h-[50vh]">
@@ -58,14 +139,6 @@ export default function DashboardPage() {
         );
     }
 
-    const formatTime = (seconds: number) => {
-        const hrs = Math.floor(seconds / 3600);
-        const mins = Math.floor((seconds % 3600) / 60);
-        if (hrs > 0) return `${hrs}h ${mins}m`;
-        return `${mins}m ${seconds % 60}s`;
-    };
-
-    // --- EMPTY STATE ---
     if (!stats || stats.totalGamesPlayed === 0) {
         return (
             <div className="flex flex-col items-center justify-center space-y-6 max-w-xl mx-auto border border-white/10 bg-surface/60 backdrop-blur-md p-12 rounded-2xl shadow-2xl my-auto w-full">
@@ -87,46 +160,12 @@ export default function DashboardPage() {
 
     const rankInfo = getRankInfo(stats);
 
-    // --- DYNAMIC TASK DATA ---
-    const activeTasks = {
-        daily: [
-            { id: 'task-d1', mode: 'static-flick', name: 'Morning Calibration', desc: 'Hit 30 targets as fast as possible to calibrate your baseline.', difficulty: 'Normal', timeLimit: 60, xpReward: 500 },
-            { id: 'task-d2', mode: 'continuous-track', name: 'Orbital Warmup', desc: 'Track the erratic drone for 30 consecutive seconds.', difficulty: 'Hard', timeLimit: 30, xpReward: 750 }
-        ],
-        weekly: [
-            { id: 'task-w1', mode: 'micro-precision', name: 'Operation: Needlepoint', desc: 'Eliminate 100 micro-targets. Accuracy must remain above 90%.', difficulty: 'Expert', timeLimit: 120, xpReward: 5000 }
-        ]
-    };
-
-    const trainingProtocols = [
-        {
-            id: 'static-flick',
-            name: 'Static Flick Baseline',
-            desc: 'Classic 3-target gridset. Prioritizes raw speed and micro-corrections.',
-            category: 'Flicking',
-            badgeColor: 'text-blue-400 border-blue-400/30 bg-blue-400/10',
-            highScore: stats?.modes?.['static-flick']?.highScore || 0,
-            avgAcc: stats?.modes?.['static-flick']?.averageAccuracy || 0,
-        },
-        {
-            id: 'continuous-track',
-            name: 'Orbital Tracking',
-            desc: 'Erratic 3D drone tracking. Prioritizes smoothness and reactivity.',
-            category: 'Tracking',
-            badgeColor: 'text-orange-400 border-orange-400/30 bg-orange-400/10',
-            highScore: stats?.modes?.['continuous-track']?.highScore || 0,
-            avgAcc: stats?.modes?.['continuous-track']?.averageAccuracy || 0,
-        }
-    ];
-
-    // --- ACTIVE DASHBOARD ---
     return (
         <div className="flex flex-col gap-8 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {/* LEFT PANEL: Profile & Radar */}
+                {/* LEFT PANEL */}
                 <div className="lg:col-span-4 flex flex-col gap-6">
-                    {/* Profile Card */}
                     <div className="bg-surface/60 border border-white/10 rounded-xl p-6 backdrop-blur-md flex flex-col items-center text-center">
                         <div className="relative w-24 h-24 mb-4">
                             <div className="absolute inset-0 rounded-full border-4 border-surface shadow-[0_0_15px_rgba(0,0,0,0.5)] z-10"></div>
@@ -168,13 +207,12 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* Radar Chart */}
                     <div className="flex items-center justify-center">
                         <RadarProfiler stats={mockDbStats} />
                     </div>
                 </div>
 
-                {/* RIGHT PANEL: Operations & Tasks */}
+                {/* RIGHT PANEL */}
                 <div className="lg:col-span-8 flex flex-col gap-6">
 
                     {/* BOX 1: ACTIVE OPERATIONS */}
@@ -186,12 +224,12 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* --- DAILY CONTRACTS --- */}
+                        {/* DAILY CONTRACTS */}
                         <div className="mb-8">
                             <div className="flex items-center gap-3 mb-4 px-2">
                                 <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
                                 <h3 className="text-white font-black tracking-[0.2em] uppercase text-xs">Daily Contracts</h3>
-                                <span className="text-slate-500 text-[10px] font-mono ml-auto">Resets in 14h 22m</span>
+                                <span className="text-slate-500 text-[10px] font-mono ml-auto">Rotates Daily</span>
                             </div>
                             <div className="flex flex-col gap-2">
                                 {activeTasks.daily.map((task) => (
@@ -200,9 +238,11 @@ export default function DashboardPage() {
                                         <div className="flex justify-between items-center relative z-10">
                                             <div>
                                                 <h4 className="text-white font-bold text-sm tracking-wide group-hover:text-blue-400 transition-colors">{task.name}</h4>
-                                                <div className="flex gap-3 mt-2">
+                                                <p className="text-slate-500 text-[11px] mt-1">{task.desc}</p>
+                                                <div className="flex gap-3 mt-3">
                                                     <span className="text-[9px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">⏱ {task.timeLimit}s</span>
                                                     <span className="text-[9px] font-mono text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded border border-orange-400/20">⚡ {task.difficulty}</span>
+                                                    <span className="text-[9px] font-mono text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded border border-purple-400/20">✨ +{task.xpReward} XP</span>
                                                 </div>
                                             </div>
                                             <button
@@ -217,7 +257,7 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* --- WEEKLY OPERATIONS --- */}
+                        {/* WEEKLY OPERATIONS */}
                         <div>
                             <div className="flex items-center gap-3 mb-4 px-2">
                                 <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
@@ -230,9 +270,11 @@ export default function DashboardPage() {
                                         <div className="flex justify-between items-center relative z-10">
                                             <div>
                                                 <h4 className="text-white font-bold text-sm tracking-wide group-hover:text-red-400 transition-colors">{task.name}</h4>
-                                                <div className="flex gap-3 mt-2">
+                                                <p className="text-slate-500 text-[11px] mt-1">{task.desc}</p>
+                                                <div className="flex gap-3 mt-3">
                                                     <span className="text-[9px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded border border-white/10">⏱ {task.timeLimit}s</span>
                                                     <span className="text-[9px] font-mono text-red-400 bg-red-400/10 px-2 py-0.5 rounded border border-red-400/20">💀 {task.difficulty}</span>
+                                                    <span className="text-[9px] font-mono text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded border border-purple-400/20">✨ +{task.xpReward} XP</span>
                                                 </div>
                                             </div>
                                             <button
@@ -248,48 +290,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    {/* BOX 2: TASK REPOSITORY */}
-                    <div className="bg-surface/60 border border-white/10 p-6 rounded-xl backdrop-blur-md">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                            <div>
-                                <h2 className="text-white font-black text-lg uppercase tracking-widest">Task Repository</h2>
-                                <p className="text-slate-400 text-sm">Open training sandbox</p>
-                            </div>
-                        </div>
-
-                        {/* List Header */}
-                        <div className="grid grid-cols-12 gap-4 pb-3 border-b border-white/10 text-[10px] font-black tracking-[0.2em] uppercase text-slate-500 px-4">
-                            <div className="col-span-5">Scenario Name</div>
-                            <div className="col-span-3 text-center">Category</div>
-                            <div className="col-span-2 text-right">High Score</div>
-                            <div className="col-span-2 text-right">Avg Acc</div>
-                        </div>
-
-                        {/* Sandbox List */}
-                        <div className="flex flex-col mt-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                            {trainingProtocols.map((protocol) => (
-                                <div key={protocol.id} className="grid grid-cols-12 gap-4 py-4 px-4 items-center border-b border-white/5 hover:bg-white/[0.02] transition-colors group cursor-pointer" onClick={() => router.push(`/game?mode=${protocol.id}`)}>
-                                    <div className="col-span-5 flex flex-col">
-                                        <span className="text-white font-bold text-sm tracking-wide group-hover:text-[#3366FF] transition-colors">{protocol.name}</span>
-                                        <span className="text-slate-500 text-[10px] truncate pr-4">{protocol.desc}</span>
-                                    </div>
-                                    <div className="col-span-3 flex justify-center">
-                                        <span className={`px-2 py-1 text-[9px] font-black uppercase tracking-widest border rounded-sm ${protocol.badgeColor}`}>
-                                            {protocol.category}
-                                        </span>
-                                    </div>
-                                    <div className="col-span-2 text-right">
-                                        <span className="text-white font-mono text-sm font-bold">{protocol.highScore > 0 ? Math.round(protocol.highScore).toLocaleString() : '--'}</span>
-                                    </div>
-                                    <div className="col-span-2 text-right">
-                                        <span className="text-emerald-400 font-mono text-sm font-bold">{protocol.avgAcc > 0 ? `${protocol.avgAcc.toFixed(1)}%` : '--'}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Bottom Stat Grid */}
+                    {/* STAT GRID */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-surface/60 border border-white/10 p-6 rounded-xl backdrop-blur-md">
                             <span className="text-slate-500 text-[10px] font-black tracking-widest uppercase block mb-1">Global Accuracy</span>
